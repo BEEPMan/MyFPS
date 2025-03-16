@@ -1,0 +1,33 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cbdf6cea8cb638943922d102bb27c59c, type: 3}
+  m_Name: ItemGroup
+  m_EditorClassIdentifier: 
+  Weapons:
+  - {fileID: 11400000, guid: 9bd90479e6b87d943a2aad41a72e7e4c, type: 2}
+  - {fileID: 11400000, guid: 7d9aeca42bee6754aa48c31cfbda6f1a, type: 2}
+  - {fileID: 11400000, guid: 8d96daed02e2fb94884a2e7211effd9d, type: 2}
+  - {fileID: 11400000, guid: d41c84833417d4243b28398668406b5d, type: 2}
+  - {fileID: 11400000, guid: a5298f44022eb6b4d86758ebb7af9a72, type: 2}
+  Scrolls:
+  - {fileID: 11400000, guid: a329ba9a6f4dd8548ab233cd8dd8f098, type: 2}
+  - {fileID: 11400000, guid: 9b18fd4a3901bf042a3a46099809aae0, type: 2}
+  - {fileID: 11400000, guid: 726603409d195cb48b0525175d97cbd3, type: 2}
+  - {fileID: 11400000, guid: e62a2e36eaaefeb4682c00be287b2184, type: 2}
+  PickupItems:
+  - {fileID: 11400000, guid: 5c11518571d8d1743afe1a314028bfd2, type: 2}
+  - {fileID: 11400000, guid: 3b4bb07cbef523e4880126e8aa2d891a, type: 2}
+  - {fileID: 11400000, guid: 48ef191970762894aa9f8d456cd6bcc4, type: 2}
+  - {fileID: 11400000, guid: c3b467289cc2b3d4c85f4ee2c7dc35e3, type: 2}
+  PeddlerItems:
+  - {fileID: 11400000, guid: 5b6fd50ca4781e743b273d94ea4d7b82, type: 2}
+  - {fileID: 11400000, guid: 05d5f20963a8b80449939a4d5a3b350b, type: 2}

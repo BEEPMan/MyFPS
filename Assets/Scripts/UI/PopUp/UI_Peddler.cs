@@ -9,62 +9,28 @@ public class UI_Peddler : UI_PopUp
     public TextMeshProUGUI coinText;
 
     [Header("Item Slots")]
-    public GameObject itemSlot;
-    public Transform contents;
+    [SerializeField] private GameObject itemSlot;
+    [SerializeField] private Transform contents;
 
     [Header("Item Details")]
-    public Image itemDetailIcon;
-    public TextMeshProUGUI itemDetailName;
-    public TextMeshProUGUI itemDetailDescription;
+    [SerializeField] private Image itemDetailIcon;
+    [SerializeField] private TextMeshProUGUI itemDetailName;
+    [SerializeField] private TextMeshProUGUI itemDetailDescription;
 
-    [SerializeField]
-    private int _numOfItems = 8;
-
-    private bool isOpenFirstTime = true;
-
-    void Update()
+    protected override void Init()
     {
-        
     }
 
     public override void OnPopUp()
     {
-        if (isOpenFirstTime)
-        {
-            InitItemList();
-            isOpenFirstTime = false;
-        }
-    }
-
-    public void InitItemList()
-    {
-        for (int i = 0; i < contents.childCount; i++)
-        {
-            Destroy(contents.GetChild(0).gameObject);
-        }
-        AddItemSlot(ItemTable.Instance.healthKit);
-        AddItemSlot(ItemTable.Instance.GetRandomItem(ItemType.AmmoSupply));
-        for (int i = 2; i < _numOfItems; i++)
-        {
-            int pick = Random.Range(0, 2);
-            if (pick == 0)
-            {
-                AddItemSlot(ItemTable.Instance.GetRandomItem(ItemType.Weapon));
-            }
-            else
-            {
-                AddItemSlot(ItemTable.Instance.GetRandomItem(ItemType.Scroll));
-            }
-        }
-        coinText.text = Player.Instance.coin.ToString();
+        UpdateCoinText(GameManager.Instance.Player.Coin.Value);
     }
 
     public void AddItemSlot(Item item)
     {
         GameObject go = Instantiate(itemSlot);
-        UI_Peddler_Item uiItem = itemSlot.GetComponent<UI_Peddler_Item>();
-        uiItem.item = item;
-        uiItem.SetSlot();
+        UI_Peddler_Item uiItem = go.GetComponent<UI_Peddler_Item>();
+        uiItem.Init(item, this);
         go.transform.SetParent(contents, false);
     }
 
@@ -73,14 +39,31 @@ public class UI_Peddler : UI_PopUp
         Color color = itemDetailIcon.color;
         color.a = 1f;
         itemDetailIcon.color = color;
-        itemDetailIcon.sprite = item.icon;
-        itemDetailName.text = item.name;
-        itemDetailDescription.text = item.description;
+        itemDetailIcon.sprite = item.Icon;
+        itemDetailName.text = item.ItemName;
+        itemDetailDescription.text = item.Description;
     }
 
-    public void SetCoinText(int coin)
+    public void UpdateCoinText(int coin)
     {
         coinText.text = coin.ToString();
+    }
+
+    public void OnItemSell()
+    {
+        ClearItemDetail();
+        UpdateCoinText(GameManager.Instance.Player.Coin.Value);
+        foreach(Transform slot in contents)
+        {
+            UI_Peddler_Item data = slot.GetComponent<UI_Peddler_Item>();
+            if (data != null)
+            {
+                if (data.Item.Price > GameManager.Instance.Player.Coin.Value)
+                    data.ChangeTextColor(Color.red);
+                else
+                    data.ChangeTextColor(Color.white);
+            }
+        }
     }
 
     public void ClearItemDetail()

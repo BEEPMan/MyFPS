@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using Unity.Netcode;
 using UnityEngine;
 
 public class PoisonArea : MonoBehaviour
@@ -34,8 +35,9 @@ public class PoisonArea : MonoBehaviour
     {
         if(other.CompareTag("Enemy"))
         {
-            EnemyStat enemy = other.GetComponent<EnemyStat>();
-            enemy.AddBuff(Player.Instance.PStat, "Decay", 5.0f);
+            EnemyController enemy = other.GetComponent<EnemyController>();
+            if (NetworkManager.Singleton.IsServer)
+                enemy.BuffManager.AddBuff(new Decay(enemy, 5.0f, 50));
         }
     }
 
@@ -43,11 +45,14 @@ public class PoisonArea : MonoBehaviour
     {
         for (int i = 0; i < 4; i++)
         {
-            RaycastHit[] hits = Physics.BoxCastAll(transform.position, new Vector3(transform.lossyScale.x * 0.5f, 0.5f, transform.lossyScale.x * 0.5f), transform.up, transform.rotation, 0.5f, _enemyLayer);
-            foreach (RaycastHit hit in hits)
+            if (NetworkManager.Singleton.IsServer)
             {
-                Stat enemy = hit.transform.GetComponent<Stat>();
-                enemy.TakeDamage(10f);
+                RaycastHit[] hits = Physics.BoxCastAll(transform.position, new Vector3(transform.lossyScale.x * 0.5f, 0.5f, transform.lossyScale.x * 0.5f), transform.up, transform.rotation, 0.5f, _enemyLayer);
+                foreach (RaycastHit hit in hits)
+                {
+                    EnemyController enemy = hit.transform.GetComponent<EnemyController>();
+                    enemy.TakeDamage(10, EnumTypes.ElementType.Corrosion);
+                }
             }
             if (i == 3) break;
             yield return new WaitForSeconds(1f);

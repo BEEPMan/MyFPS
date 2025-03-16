@@ -1,0 +1,38 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2fe59fc205ed15c40a0d099c37094746, type: 3}
+  m_Name: SniperRifle
+  m_EditorClassIdentifier: 
+  id: a5298f44022eb6b4d86758ebb7af9a72
+  ItemName: SniperRifle
+  Description: SniperRifle
+  Icon: {fileID: 21300000, guid: 4ebd76a5f2c9662469457442a414f97a, type: 3}
+  Price: 250
+  GainEffects: []
+  damage: 20
+  range: 80
+  ammoType: 3
+  ammoCapacity: 6
+  elementalType: 2
+  elementalProb: 80
+  fireRate: 0.8
+  reloadTime: 1.1
+  recoilRate: {x: 0.4, y: 1.6}
+  recoilSpeed: 1
+  returnSpeed: 0.5
+  isAutomatic: 0
+  zoomable: 1
+  aimRecoilRate: {x: 0.2, y: 0.8}
+  zoomRate: 4
+  spreadable: 0
+  numOfShell: 0
+  scatterRate: 0

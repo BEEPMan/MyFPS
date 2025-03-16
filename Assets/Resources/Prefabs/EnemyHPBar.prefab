@@ -1001,7 +1001,7 @@ GameObject:
   - component: {fileID: 8760988473245966869}
   - component: {fileID: 3260985116938425970}
   m_Layer: 8
-  m_Name: BackHPBar
+  m_Name: FrontSABar
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1148,7 +1148,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 2934285900213314041}
-  - component: {fileID: -8372600130722191648}
   m_Layer: 8
   m_Name: EnemyHPBar
   m_TagString: Untagged
@@ -1180,20 +1179,3 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 100, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
---- !u!114 &-8372600130722191648
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8844855553862275333}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 70bf086a766b8f141bceaef9897d488e, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  chipSpeed: 2
-  HPBar: {fileID: 0}
-  frontHPBar: {fileID: 286446824611823261}
-  backHPBar: {fileID: 3260985116938425970}
-  buffList: {fileID: 118388630031499633}

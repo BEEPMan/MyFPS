@@ -1,98 +1,103 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Cysharp.Threading.Tasks;
+using System;
 
-public class PlayerMove : MonoBehaviour
+public class PlayerMove
 {
-    private Rigidbody _rb;
+    public PlayerController Player { get; private set; }
+
+    private Rigidbody rb;
     private bool _isGrounded;
     private bool _isSlope;
     private float _slopeAngle;
 
-    public Transform groundCheck;
     private LayerMask _groundLayer;
-    public float speed = 5f;
-    public float jumpHeight = 10f;
-    [Range(0f, 60f)]
-    public float maxSlope = 45f;
+    private float jumpHeight = 5f;
+    private float maxSlope = 45f;
 
     private Vector3 _slopeNormal;
 
-    private bool _isDashing;
+    private float jumpTimer;
+    private float dashTimer;
 
-    private float dashingTimer;
+    private bool isDashing = false;
 
-    void Start()
+    public void Init(PlayerController player)
     {
-        _rb = GetComponent<Rigidbody>();
+        Player = player;
+        rb = Player.GetComponent<Rigidbody>();
         _groundLayer = 1 << LayerMask.NameToLayer("Ground") | 1 <<  LayerMask.NameToLayer("Interactable");
+        jumpTimer = Global.JumpCoolTime;
+        dashTimer = Global.DashCoolTime;
     }
 
-    void Update()
+    public void OnUpdate()
     {
         _isGrounded = CheckGround();
         _isSlope = CheckSlope();
-        if (!_isDashing) _rb.velocity = new Vector3(0f, _rb.velocity.y, 0f);
-        dashingTimer += Time.deltaTime;
-        if(dashingTimer > 0.3f)
-        {
-            if (_isDashing) _rb.velocity = new Vector3(0f, (!_isSlope ? _rb.velocity.y : 0f), 0f);
-            _isDashing = false;
-        }
-        _rb.useGravity = !(_isGrounded && _slopeAngle <= maxSlope);
+        rb.useGravity = !(_isGrounded && _slopeAngle <= maxSlope);
+        if(!isDashing) rb.linearVelocity = new Vector3(0, rb.linearVelocity.y, 0);
+        jumpTimer += Time.deltaTime;
+        dashTimer += Time.deltaTime;
     }
 
     public void ProcessMove(Vector2 input)
     {
-        if (_isDashing) return;
+        if (isDashing) return;
         Vector3 moveDirection = Vector3.zero;
         moveDirection.x = input.x;
         moveDirection.z = input.y;
-        moveDirection = transform.TransformDirection(moveDirection);
+        moveDirection = Player.transform.TransformDirection(moveDirection);
         if (_isGrounded && _isSlope)
         {
             moveDirection = ProjectToSlope(moveDirection);
             moveDirection *= moveDirection.y >= 0 ? Mathf.Cos(Mathf.Deg2Rad * _slopeAngle) : 1 / Mathf.Cos(Mathf.Deg2Rad * _slopeAngle);
         }
-        _rb.MovePosition(_rb.position + moveDirection * speed * Time.deltaTime);
+        rb.MovePosition(rb.position + moveDirection * Player.Speed * (100 + Player.SpeedFactor) / 100 * Time.deltaTime);
     }
 
-    public bool TryJump()
+    public void Jump()
     {
-        if (_isGrounded)
-        {
-            _rb.velocity = new Vector3(_rb.velocity.x, 0f, _rb.velocity.z);
-            _rb.AddForce(Vector3.up * jumpHeight, ForceMode.Impulse);
-            return true;
-        }
-        return false;
+        if (jumpTimer < Global.JumpCoolTime || !_isGrounded) return;
+        rb.linearVelocity = new Vector3(rb.linearVelocity.x, 0f, rb.linearVelocity.z);
+        rb.AddForce(Vector3.up * jumpHeight, ForceMode.Impulse);
+        jumpTimer = 0f;
     }
 
     public void Dash(Vector2 input)
     {
-        dashingTimer = 0f;
-        _isDashing = true;
-        Vector3 dashDirection = input == Vector2.zero ? transform.forward : transform.TransformDirection(input.x, 0f, input.y);
+        if (dashTimer < Global.DashCoolTime) return;
+        isDashing = true;
+        Vector3 dashDirection = input == Vector2.zero ? Player.transform.forward : Player.transform.TransformDirection(input.x, 0f, input.y);
         dashDirection.y = 0f;
-        dashDirection = dashDirection.normalized * 10.0f;
-        dashDirection.y = _rb.velocity.y;
-        _rb.velocity = dashDirection;
+        dashDirection = dashDirection.normalized * Player.Speed * 2f;
+        dashDirection.y = rb.linearVelocity.y;
+        rb.linearVelocity = dashDirection;
+        dashTimer = 0f;
+        if (UIManager.Instance.InGame != null)
+        {
+            UIManager.Instance.InGame.UpdateDashCoolDown(dashTimer, Global.DashCoolTime);
+        }
+        AfterDash().Forget();
+    }
+
+    protected async UniTaskVoid AfterDash()
+    {
+        await UniTask.Delay(TimeSpan.FromSeconds(0.3f));
+        rb.linearVelocity = new Vector3(0f, (!_isSlope ? rb.linearVelocity.y : 0f), 0f);
+        isDashing = false;
     }
 
     private bool CheckGround()
     {
-        return Physics.BoxCast(groundCheck.position, new Vector3(transform.lossyScale.x * 0.25f, 0.05f, transform.lossyScale.x * 0.25f), -transform.up, transform.rotation, 1.1f, _groundLayer);
-    }
-
-    private void OnDrawGizmos()
-    {
-        Gizmos.color = Color.red;
-        Gizmos.DrawWireCube(groundCheck.position - transform.up * 0.0f, new Vector3(transform.lossyScale.x * 0.5f, 0.1f, transform.lossyScale.x * 0.5f));
+        return Physics.BoxCast(Player.GroundCheck.position, new Vector3(Player.transform.lossyScale.x * 0.25f, 0.05f, Player.transform.lossyScale.x * 0.25f), -Player.transform.up, Player.transform.rotation, 1.1f, _groundLayer);
     }
 
     private bool CheckSlope()
     {
-        Ray ray = new Ray(transform.position, Vector3.down);
+        Ray ray = new Ray(Player.transform.position, Vector3.down);
         RaycastHit hitInfo;
         if (Physics.Raycast(ray, out hitInfo, 2f, _groundLayer))
         {

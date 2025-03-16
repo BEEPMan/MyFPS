@@ -4,6 +4,36 @@ using UnityEngine;
 
 public abstract class UI_PopUp : MonoBehaviour
 {
+    protected CanvasGroup panel;
+    protected RectTransform rectTransform;
+
+    private void Awake()
+    {
+        panel = GetComponent<CanvasGroup>();
+        rectTransform = GetComponent<RectTransform>();
+
+        if(panel != null)
+        {
+            panel.blocksRaycasts = false;
+            panel.alpha = 0f;
+        }
+    }
+
+    public virtual void ShowPanel()
+    {
+        rectTransform.SetAsLastSibling();
+        panel.blocksRaycasts = true;
+        panel.alpha = 1f;
+        OnPopUp();
+    }
+
+    public virtual void HidePanel()
+    {
+        rectTransform.SetAsFirstSibling();
+        panel.blocksRaycasts = false;
+        panel.alpha = 0f;
+    }
+
     // Start is called before the first frame update
     void Start()
     {

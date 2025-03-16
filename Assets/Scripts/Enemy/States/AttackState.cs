@@ -5,60 +5,58 @@ using UnityEngine;
 public class AttackState : BaseState
 {
     private float moveTimer;
-    private float losePlayerTimer;
+    private float loseTargetTimer;
     private float fireTimer;
 
     public override void Enter()
     {
-        enemy.Agent.isStopped = true;
+        
     }
 
     public override void Exit()
     {
-        enemy.Agent.isStopped = false;
+        
     }
 
     public override void Perform()
     {
-        if(enemy.CanSeePlayer())
+        Vector3 lookPos = stateMachine.Enemy.Target.transform.position;
+        lookPos.y = stateMachine.Enemy.transform.position.y;
+        stateMachine.Enemy.transform.LookAt(lookPos);
+        if (stateMachine.Enemy.CanSeeTarget())
         {
-            losePlayerTimer = 0;
-            moveTimer += Time.deltaTime;
-            fireTimer += Time.deltaTime;
-            Vector3 lookPos = enemy.Target.transform.position;
-            lookPos.y = enemy.transform.position.y;
-            enemy.transform.LookAt(lookPos);
+            loseTargetTimer = 0f;
 
-            if(fireTimer > enemy.fireRate)
+            fireTimer += Time.deltaTime;
+            if (fireTimer > stateMachine.Enemy.fireRate)
             {
-                Fire();
+                stateMachine.Enemy.Attack();
+                fireTimer = 0;
             }
-            if(moveTimer > Random.Range(3,7))
+
+            float distanceToPlayer = Vector3.Distance(stateMachine.Enemy.transform.position, stateMachine.Enemy.Target.transform.position);
+            if (distanceToPlayer > 6f)
             {
-                enemy.Agent.isStopped = false;
-                enemy.Agent.SetDestination(enemy.transform.position + (Random.insideUnitSphere * 5));
-                moveTimer = 0;
+                stateMachine.Enemy.Agent.SetDestination(stateMachine.Enemy.Target.transform.position);
+            }
+            else if (distanceToPlayer < 4f)
+            {
+                Vector3 backDirection = (stateMachine.Enemy.transform.position - stateMachine.Enemy.Target.transform.position).normalized;
+                Vector3 destination = stateMachine.Enemy.Target.transform.position + backDirection * 5f;
+                stateMachine.Enemy.Agent.SetDestination(destination);
+            }
+            else
+            {
+                //stateMachine.Enemy.Agent.ResetPath();
             }
         }
         else
         {
-            losePlayerTimer += Time.deltaTime;
-            if(losePlayerTimer > 3f)
+            loseTargetTimer += Time.deltaTime;
+            if(loseTargetTimer > 3f)
             {
-                enemy.Agent.isStopped = false;
                 stateMachine.ChangeState(new SearchState());
             }
         }
-    }
-
-    public void Fire()
-    {
-        Transform gunBarrel = enemy.gunBarrel;
-        GameObject bullet = GameObject.Instantiate(Resources.Load("Prefabs/Bullet") as GameObject, gunBarrel.position, enemy.transform.rotation);
-        bullet.transform.Rotate(new Vector3(90f, 0f, 0f), Space.Self);
-        bullet.GetComponent<Bullet>().TargetTag = "Player";
-        Vector3 fireDirection = (enemy.Target.transform.position - gunBarrel.transform.position).normalized;
-        bullet.GetComponent<Rigidbody>().velocity = Quaternion.AngleAxis(Random.Range(-3f, 3f), Vector3.up) * fireDirection * 40;
-        fireTimer = 0;
     }
 }

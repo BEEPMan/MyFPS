@@ -10,7 +10,7 @@ public class Button : Interactable
 
     void Start()
     {
-        
+        needToSyncronize = true;
     }
 
     void Update()
@@ -18,7 +18,7 @@ public class Button : Interactable
         
     }
 
-    protected override void Interact()
+    protected override void Interact(PlayerController player)
     {
         doorOpen = !doorOpen;
         door.GetComponent<Animator>().SetBool("isOpen", doorOpen);

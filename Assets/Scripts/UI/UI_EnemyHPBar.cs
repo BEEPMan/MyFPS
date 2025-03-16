@@ -3,21 +3,20 @@ using System.Collections.Generic;
 using UnityEngine.UI;
 using UnityEngine;
 using TMPro;
+using DG.Tweening;
 
 public class UI_EnemyHPBar : MonoBehaviour
 {
     [Header("HP Bar")]
-    public float chipSpeed = 2f;
-    public Image frontHPBar;
-    public Image backHPBar;
-    public Transform buffList;
+    [SerializeField] private Image frontHPBar;
+    [SerializeField] private Transform buffList;
 
-    public GameObject miasmaStack;
-    public TextMeshProUGUI miasmaText;
+    [Header("Shield/Armor Bar")]
+    [SerializeField] private GameObject SABar;
+    [SerializeField] private Image frontSABar;
 
-    private float lerpTimer;
-
-    private Enemy _enemy;
+    [SerializeField] private GameObject miasmaStack;
+    [SerializeField] private TextMeshProUGUI miasmaText;
 
     void Start()
     {
@@ -26,21 +25,18 @@ public class UI_EnemyHPBar : MonoBehaviour
 
     void Update()
     {
-        if (_enemy != null)
-            UpdateHPUI();
-        transform.LookAt(Player.Instance.mainCamera.transform.position);
+        transform.LookAt(Camera.main.transform.position);
     }
 
     public void InitHPBer()
     {
         frontHPBar.fillAmount = 1f;
-        backHPBar.fillAmount = 1f;
-        Transform[] fucker = new Transform[transform.childCount];
+        Transform[] damageTexts = new Transform[transform.childCount];
         for (int i = 0; i < transform.childCount; i++)
         {
-            fucker[i] = transform.GetChild(i);
+            damageTexts[i] = transform.GetChild(i);
         }
-        foreach(Transform child in fucker)
+        foreach(Transform child in damageTexts)
         {
             if(child.name == "DamageText")
             {
@@ -48,6 +44,27 @@ public class UI_EnemyHPBar : MonoBehaviour
             }
         }
         ClearBuffIcon();
+    }
+
+    public void UpdateHPType(EnumTypes.HPType hpType)
+    {
+        Color color;
+        if (hpType == EnumTypes.HPType.Shield)
+        {
+            SABar.SetActive(true);
+            ColorUtility.TryParseHtmlString("#00FFFF", out color);
+            frontSABar.color = color;
+        }
+        else if (hpType == EnumTypes.HPType.Armor)
+        {
+            SABar.SetActive(true);
+            ColorUtility.TryParseHtmlString("#FFB000", out color);
+            frontSABar.color = color;
+        }
+        else
+        {
+            SABar.SetActive(false);
+        }
     }
 
     public void InitBuffIcons()
@@ -59,34 +76,16 @@ public class UI_EnemyHPBar : MonoBehaviour
         }
     }
 
-    public void SetLerpTimer()
+    public void UpdateHPBar(int HP, int maxHP)
     {
-        lerpTimer = 0f;
+        float HPFraction = (float)HP / maxHP;
+        frontHPBar.DOFillAmount(HPFraction, 0.5f);
     }
 
-    public void UpdateHPUI()
+    public void UpdateSABar(int SA, int maxSA)
     {
-        float fillFront = frontHPBar.fillAmount;
-        float fillBack = backHPBar.fillAmount;
-        float HPFraction = _enemy.Stat.HP / _enemy.Stat.MaxHP;
-        if (fillBack > HPFraction)
-        {
-            frontHPBar.fillAmount = HPFraction;
-            backHPBar.color = Color.red;
-            lerpTimer += Time.deltaTime;
-            float percentComplete = lerpTimer / chipSpeed;
-            percentComplete *= percentComplete;
-            backHPBar.fillAmount = Mathf.Lerp(fillBack, HPFraction, percentComplete);
-        }
-        if (fillFront < HPFraction)
-        {
-            backHPBar.fillAmount = HPFraction;
-            backHPBar.color = Color.green;
-            lerpTimer += Time.deltaTime;
-            float percentComplete = lerpTimer / chipSpeed;
-            percentComplete *= percentComplete;
-            frontHPBar.fillAmount = Mathf.Lerp(fillFront, HPFraction, percentComplete);
-        }
+        float SAFraction = (float)SA / maxSA;
+        frontSABar.DOFillAmount(SAFraction, 0.5f);
     }
 
     public void PopDamageText(int damage)
@@ -135,10 +134,5 @@ public class UI_EnemyHPBar : MonoBehaviour
     public void DisableMiasmaStack()
     {
         miasmaStack.SetActive(false);
-    }
-
-    public void SetEnemy(Enemy enemy)
-    {
-        _enemy = enemy;
     }
 }

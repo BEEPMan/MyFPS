@@ -20,7 +20,7 @@ public class PatrolState : BaseState
     public override void Perform()
     {
         PatrolCycle();
-        if (enemy.CanSeePlayer())
+        if (stateMachine.Enemy.CanSeeTarget())
         {
             stateMachine.ChangeState(new AttackState());
         }
@@ -28,16 +28,16 @@ public class PatrolState : BaseState
 
     public void PatrolCycle()
     {
-        if(enemy.Agent.remainingDistance < 1f)
+        if(stateMachine.Enemy.Agent.remainingDistance < 1f)
         {
             waitTimer += Time.deltaTime;
             if (waitTimer > 3f)
             {
-                if (waypointIndex < enemy.path.waypoints.Count - 1)
+                if (waypointIndex < stateMachine.Enemy.path.waypoints.Count - 1)
                     waypointIndex++;
                 else
                     waypointIndex = 0;
-                enemy.Agent.SetDestination(enemy.path.waypoints[waypointIndex].position);
+                stateMachine.Enemy.Agent.SetDestination(stateMachine.Enemy.path.waypoints[waypointIndex].position);
                 waitTimer = 0;
             }
         }

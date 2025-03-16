@@ -7,34 +7,34 @@ using UnityEngine.UI;
 public class UI_Inventory_Weapon : UI_PopUp
 {
     [Header("Ammo")]
-    public Image normalAmmoFront;
-    public TextMeshProUGUI normalAmmoText;
-    public Image largeAmmoFront;
-    public TextMeshProUGUI largeAmmoText;
-    public Image specialAmmoFront;
-    public TextMeshProUGUI specialAmmoText;
+    [SerializeField] private Image normalAmmoFront;
+    [SerializeField] private TextMeshProUGUI normalAmmoText;
+    [SerializeField] private Image largeAmmoFront;
+    [SerializeField] private TextMeshProUGUI largeAmmoText;
+    [SerializeField] private Image specialAmmoFront;
+    [SerializeField] private TextMeshProUGUI specialAmmoText;
 
     [Header("WeaponDetails")]
-    public Image[] weaponIcons = new Image[3];
-    public TextMeshProUGUI[] weaponNames = new TextMeshProUGUI[3];
-    public TextMeshProUGUI[] weaponDescriptions = new TextMeshProUGUI[3];
+    [SerializeField] private Image[] weaponIcons = new Image[3];
+    [SerializeField] private TextMeshProUGUI[] weaponNames = new TextMeshProUGUI[3];
+    [SerializeField] private TextMeshProUGUI[] weaponDescriptions = new TextMeshProUGUI[3];
 
     //private bool isOpenFirstTime = true;
 
     public override void OnPopUp()
     {
-        SetAmmoFillAmount();
-        SetWeaponDetails();
+        UpdateAmmoFillAmount();
+        UpdateWeaponDetails();
     }
 
-    public void SetAmmoFillAmount()
+    public void UpdateAmmoFillAmount()
     {
-        int normalRemainAmmo = Player.Instance.PWeapon.ammo.remainAmmo[(int)AmmoType.Normal];
-        int normalMaxAmmo = Player.Instance.PWeapon.ammo.maxAmmo[(int)AmmoType.Normal];
-        int largeRemainAmmo = Player.Instance.PWeapon.ammo.remainAmmo[(int)AmmoType.Large];
-        int largeMaxAmmo = Player.Instance.PWeapon.ammo.maxAmmo[(int)AmmoType.Large];
-        int specialRemainAmmo = Player.Instance.PWeapon.ammo.remainAmmo[(int)AmmoType.Special];
-        int specialMaxAmmo = Player.Instance.PWeapon.ammo.maxAmmo[(int)AmmoType.Special];
+        int normalRemainAmmo = GameManager.Instance.Player.Ammos[(int)EnumTypes.AmmoType.Normal];
+        int normalMaxAmmo = GameManager.Instance.Player.MaxAmmos[(int)EnumTypes.AmmoType.Normal];
+        int largeRemainAmmo = GameManager.Instance.Player.Ammos[(int)EnumTypes.AmmoType.Large];
+        int largeMaxAmmo = GameManager.Instance.Player.MaxAmmos[(int)EnumTypes.AmmoType.Large];
+        int specialRemainAmmo = GameManager.Instance.Player.Ammos[(int)EnumTypes.AmmoType.Special];
+        int specialMaxAmmo = GameManager.Instance.Player.MaxAmmos[(int)EnumTypes.AmmoType.Special];
         normalAmmoFront.fillAmount = (float)normalRemainAmmo / normalMaxAmmo;
         largeAmmoFront.fillAmount = (float)largeRemainAmmo / largeMaxAmmo;
         specialAmmoFront.fillAmount = (float)specialRemainAmmo / specialMaxAmmo;
@@ -43,19 +43,19 @@ public class UI_Inventory_Weapon : UI_PopUp
         specialAmmoText.text = string.Concat(specialRemainAmmo, "/", specialMaxAmmo);
     }
 
-    public void SetWeaponDetails()
+    public void UpdateWeaponDetails()
     {
         Weapon weapon;
         for (int i = 0; i < 3; i++)
         {
-            weapon = Player.Instance.PWeapon.GetWeapon(i + 1);
+            weapon = GameManager.Instance.Player.Weapons[i].WeaponData;
             if (weapon == null) continue;
             Color color = weaponIcons[i].color;
             color.a = 1f;
             weaponIcons[i].color = color;
-            weaponIcons[i].sprite = weapon.weaponIcon;
-            weaponNames[i].text = weapon.name;
-            weaponDescriptions[i].text = weapon.GetDescription();
+            weaponIcons[i].sprite = weapon.Icon;
+            weaponNames[i].text = weapon.ItemName;
+            weaponDescriptions[i].text = weapon.Description;
         }
     }
 
@@ -73,7 +73,7 @@ public class UI_Inventory_Weapon : UI_PopUp
 
     public void ChangeTab()
     {
-        UIManager.Instance.ClosePopUp();
-        UIManager.Instance.OpenPopUp(PopUpType.Scroll);
+        UIManager.Instance.HidePanel("UI_Inventory_Weapon");
+        UIManager.Instance.ShowPanel("UI_Inventory_Scroll");
     }
 }

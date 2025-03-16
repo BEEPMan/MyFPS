@@ -10,32 +10,17 @@ using UnityEngine.UI;
 public class UI_Inventory_Scroll : UI_PopUp
 {
     [Header("Scrolls")]
-    public GameObject scrolls;
-    private List<Image> scrollIcons = new();
+    [SerializeField] private GameObject scrolls;
+    private Image[] scrollIcons;
 
     [Header("Scroll Details")]
-    public Image scrollDetailIcon;
-    public TextMeshProUGUI scrollDetailName;
-    public TextMeshProUGUI scrollDetailDescription;
-
-    [Header("Ammo")]
-    public Image normalAmmoFront;
-    public TextMeshProUGUI normalAmmoText;
-    public Image largeAmmoFront;
-    public TextMeshProUGUI largeAmmoText;
-    public Image specialAmmoFront;
-    public TextMeshProUGUI specialAmmoText;
-
-    [Header("WeaponDetails")]
-    public Image[] weaponIcons = new Image[3];
-    public TextMeshProUGUI[] weaponNames = new TextMeshProUGUI[3];
-    public TextMeshProUGUI[] weaponDescriptions = new TextMeshProUGUI[3];
-
-    private bool isOpenFirstTime = true;
+    [SerializeField] private Image scrollDetailIcon;
+    [SerializeField] private TextMeshProUGUI scrollDetailName;
+    [SerializeField] private TextMeshProUGUI scrollDetailDescription;
 
     protected override void Init()
     {
-        InitScrollInventory();
+        scrollIcons = new Image[scrolls.transform.childCount];
     }
 
     private void Update()
@@ -45,52 +30,38 @@ public class UI_Inventory_Scroll : UI_PopUp
 
     public override void OnPopUp()
     {
-        if (isOpenFirstTime)
-        {
-            InitScrollInventory();
-            isOpenFirstTime = false;
-        }
-        ClearScrollDetail();
-        SetScrollInventory();
-        //SetAmmoFillAmount();
-        //SetWeaponDetails();
+        UpdateScrollInventory();
     }
 
-    public void InitScrollInventory()
+    public void UpdateScrollInventory()
     {
-        foreach(Image item in scrolls.transform.GetComponentsInChildren<Image>())
-        {
-            if(item.name == "Icon")
-            {
-                scrollIcons.Add(item);
-            }
-        }
-    }
-
-    public void SetScrollInventory()
-    {
-        for (int i = 0; i < Player.Instance.PStat.scrolls.Count; i++)
+        int i = 0;
+        foreach(Scroll scroll in GameManager.Instance.Player.ScrollManager.Scrolls.Values)
         {
             Color color = scrollIcons[i].color;
             color.a = 1f;
             scrollIcons[i].color = color;
-            scrollIcons[i].sprite = Player.Instance.PStat.scrolls[i].scrollIcon;
+            Sprite icon = scroll.Icon;
+            scrollIcons[i].sprite = icon;
             if (scrollIcons[i].GetComponent<UI_Inventory_Item>() != null)
             {
                 Destroy(scrollIcons[i].GetComponent<UI_Inventory_Item>());
             }
-            scrollIcons[i].AddComponent<UI_Inventory_Item>().scroll = Player.Instance.PStat.scrolls[i];
+            scrollIcons[i].AddComponent<UI_Inventory_Item>().Init(scroll.ItemName, this);
+            i++;
         }
     }
 
-    public void SetScrollDetail(Scroll scroll)
+    public void SetScrollDetail(string scrollName)
     {
+        Scroll scroll = ItemManager.Instance.FindScroll(scrollName);
+
         Color color = scrollDetailIcon.color;
         color.a = 1f;
         scrollDetailIcon.color = color;
-        scrollDetailIcon.sprite = scroll.scrollIcon;
-        scrollDetailName.text = scroll.name;
-        scrollDetailDescription.text = scroll.description;
+        scrollDetailIcon.sprite = scroll.Icon;
+        scrollDetailName.text = scroll.ItemName;
+        scrollDetailDescription.text = scroll.Description;
     }
 
     public void ClearScrollDetail()
@@ -102,53 +73,9 @@ public class UI_Inventory_Scroll : UI_PopUp
         scrollDetailDescription.text = "";
     }
 
-    public void SetAmmoFillAmount()
-    {
-        int normalRemainAmmo = Player.Instance.PWeapon.ammo.remainAmmo[(int)AmmoType.Normal];
-        int normalMaxAmmo = Player.Instance.PWeapon.ammo.maxAmmo[(int)AmmoType.Normal];
-        int largeRemainAmmo = Player.Instance.PWeapon.ammo.remainAmmo[(int)AmmoType.Large];
-        int largeMaxAmmo = Player.Instance.PWeapon.ammo.maxAmmo[(int)AmmoType.Large];
-        int specialRemainAmmo = Player.Instance.PWeapon.ammo.remainAmmo[(int)AmmoType.Special];
-        int specialMaxAmmo = Player.Instance.PWeapon.ammo.maxAmmo[(int)AmmoType.Special];
-        normalAmmoFront.fillAmount = (float)normalRemainAmmo / normalMaxAmmo;
-        largeAmmoFront.fillAmount = (float)largeRemainAmmo/largeMaxAmmo;
-        specialAmmoFront.fillAmount = (float)specialRemainAmmo / specialMaxAmmo;
-        normalAmmoText.text = string.Concat(normalRemainAmmo, "/", normalMaxAmmo);
-        largeAmmoText.text = string.Concat(largeRemainAmmo, "/", largeMaxAmmo);
-        specialAmmoText.text = string.Concat(specialRemainAmmo, "/", specialMaxAmmo);
-    }
-
-    public void SetWeaponDetails()
-    {
-        Weapon weapon;
-        for (int i = 0; i < 3; i++)
-        {
-            weapon = Player.Instance.PWeapon.GetWeapon(i + 1);
-            if (weapon == null) continue;
-            Color color = weaponIcons[i].color;
-            color.a = 1f;
-            weaponIcons[i].color = color;
-            weaponIcons[i].sprite = weapon.weaponIcon;
-            weaponNames[i].text = weapon.name;
-            weaponDescriptions[i].text = weapon.GetDescription();
-        }
-    }
-
-    public void ClearWeaponDetails()
-    {
-        for (int i = 0; i < 3; i++)
-        {
-            Color color = weaponIcons[i].color;
-            color.a = 0f;
-            weaponIcons[i].color = color;
-            weaponNames[i].text = "";
-            weaponDescriptions[i].text = "";
-        }
-    }
-
     public void ChangeTab()
     {
-        UIManager.Instance.ClosePopUp();
-        UIManager.Instance.OpenPopUp(PopUpType.Weapon);
+        UIManager.Instance.HidePanel("UI_Inventory_Scroll");
+        UIManager.Instance.ShowPanel("UI_Inventory_Weapon");
     }
 }

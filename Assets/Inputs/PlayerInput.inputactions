@@ -51,7 +51,7 @@
                     "initialStateCheck": false
                 },
                 {
-                    "name": "FIre",
+                    "name": "Fire",
                     "type": "Button",
                     "id": "5165fb85-0c54-4431-8769-8267ce8e92eb",
                     "expectedControlType": "Button",
@@ -117,6 +117,15 @@
                     "name": "OpenIventory",
                     "type": "Button",
                     "id": "43ad97fe-2087-43b8-9145-16e125ec4fd5",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "DropWeapon",
+                    "type": "Button",
+                    "id": "0529f8b6-b94c-4133-824b-4337773ee8e3",
                     "expectedControlType": "Button",
                     "processors": "",
                     "interactions": "",
@@ -230,7 +239,7 @@
                     "interactions": "",
                     "processors": "",
                     "groups": "",
-                    "action": "FIre",
+                    "action": "Fire",
                     "isComposite": false,
                     "isPartOfComposite": false
                 },
@@ -330,6 +339,17 @@
                     "processors": "",
                     "groups": "",
                     "action": "OpenIventory",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "07e0b49e-dbb8-4b20-9f8a-0eb022185d78",
+                    "path": "<Keyboard>/p",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "DropWeapon",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }

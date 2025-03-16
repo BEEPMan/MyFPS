@@ -5,15 +5,23 @@ using UnityEngine.EventSystems;
 
 public class UI_Inventory_Item : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
 {
-    public Scroll scroll;
+    private UI_Inventory_Scroll _scrollInventory;
+
+    public string ScrollName;
+
+    public void Init(string scrollName, UI_Inventory_Scroll parent)
+    {
+        _scrollInventory = parent;
+        ScrollName = scrollName;
+    }
 
     public void OnPointerEnter(PointerEventData eventData)
     {
-        UIManager.Instance.ScrollInventory.SetScrollDetail(scroll);
+        _scrollInventory.SetScrollDetail(ScrollName);
     }
 
     public void OnPointerExit(PointerEventData eventData)
     {
-        UIManager.Instance.ScrollInventory.ClearScrollDetail();
+        _scrollInventory.ClearScrollDetail();
     }
 }

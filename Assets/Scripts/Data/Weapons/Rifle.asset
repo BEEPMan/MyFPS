@@ -1,0 +1,32 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fc482fe689263f545919dfb569ff736b, type: 3}
+  m_Name: Rifle
+  m_EditorClassIdentifier: 
+  weaponName: Rifle
+  damage: 15
+  range: 45
+  ammoType: 1
+  ammoCapacity: 30
+  elementalType: 1
+  elementalProb: 40
+  fireRate: 5
+  reloadTime: 0.7
+  recoilRate: {x: 3.5, y: 3}
+  recoilSpeed: 2
+  returnSpeed: 5
+  zoomable: 0
+  aimRecoilRate: {x: 0, y: 0}
+  zoomRate: 0
+  spreadable: 0
+  numOfShell: 0
+  scatterRate: 0

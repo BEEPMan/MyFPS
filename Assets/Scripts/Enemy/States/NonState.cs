@@ -4,14 +4,16 @@ using UnityEngine;
 
 public class NonState : BaseState
 {
+
+
     public override void Enter()
     {
-        enemy.Agent.isStopped = true;
+        stateMachine.Enemy.Agent.enabled = false;
     }
 
     public override void Exit()
     {
-        enemy.Agent.isStopped = false;
+        stateMachine.Enemy.Agent.enabled = true;
     }
 
     public override void Perform()

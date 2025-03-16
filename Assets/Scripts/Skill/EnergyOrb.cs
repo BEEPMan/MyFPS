@@ -1,6 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
-using System.Timers;
+using Unity.Netcode;
 using UnityEngine;
 
 public class EnergyOrb : MonoBehaviour
@@ -21,12 +21,13 @@ public class EnergyOrb : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
-        EnemyStat enemy;
-        if (enemy = other.GetComponent<EnemyStat>()) enemy.AddBuff(Player.Instance.PStat, "Freeze", 3.0f);
+        EnemyController enemy;
+        if (NetworkManager.Singleton.IsServer)
+            if (enemy = other.GetComponent<EnemyController>()) enemy.BuffManager.AddBuff(new Freeze(enemy, 3.0f));
         if (!isExploding)
         {
             explodeTimer = 0f;
-            GetComponent<Rigidbody>().velocity = Vector3.zero;
+            GetComponent<Rigidbody>().linearVelocity = Vector3.zero;
             StartCoroutine(Explode());
         }
         isExploding = true;
