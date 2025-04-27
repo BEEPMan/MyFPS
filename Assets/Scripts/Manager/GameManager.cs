@@ -24,6 +24,8 @@ public class GameManager : Singleton<GameManager>
     private int maxEnemyCount = 0;
     [SerializeField]
     private float spawnCoolDown = 3f;
+    [SerializeField]
+    private GameObject m_Enemy_Prefab;
 
     private int _enemyCount = 0;
 
@@ -61,9 +63,9 @@ public class GameManager : Singleton<GameManager>
     private void SpawnEnemy()
     {
         Vector3 spawnPoint = new Vector3(UnityEngine.Random.Range(-7f, 5f), 1f, UnityEngine.Random.Range(8f, 18f));
-        GameObject go = ObjectPool.Instance.Pop("Enemy", spawnPoint, Quaternion.identity);
-        go.GetComponent<EnemyController>().Init();
-        go.GetComponent<NetworkObject>().Spawn();
+        NetworkObject go = NetworkObjectPool.Instance.GetNetworkObject("Enemy", spawnPoint, Quaternion.identity);
+        //go.GetComponent<EnemyController>().Init();
+        go.Spawn();
         _enemyCount++;
         SpawnEnemyRPC(spawnPoint);
     }
@@ -73,14 +75,16 @@ public class GameManager : Singleton<GameManager>
     {
         if (!NetworkManager.Singleton.IsHost)
         {
-            GameObject go = ObjectPool.Instance.Pop("Enemy", spawnPoint, Quaternion.identity);
-            go.GetComponent<EnemyController>().Init();
+            //NetworkObject go = NetworkObjectPool.Instance.GetNetworkObject("Enemy", spawnPoint, Quaternion.identity);
+            //go.GetComponent<EnemyController>().Init();
             _enemyCount++;
         }
     }
 
-    public void OnEnemyDead()
+    public void OnEnemyDead(NetworkObject enemy)
     {
         _enemyCount--;
+        enemy.Despawn();
+        //spawnTimer = 0f;
     }
 }

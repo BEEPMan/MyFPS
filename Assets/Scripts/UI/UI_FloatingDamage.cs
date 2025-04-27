@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using TMPro;
+using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -40,6 +41,7 @@ public class UI_FloatingDamage : MonoBehaviour
         }
         color.a = 0f;
         damageText.color = color;
+        transform.SetParent(null);
         ObjectPool.Instance.Push(gameObject);
     }
 }

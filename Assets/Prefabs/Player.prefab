@@ -247,6 +247,26 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   ShowTopMostFoldoutHeaderGroup: 1
   Data: {fileID: 11400000, guid: dc516f030db49714a94a4c4b6d41de13, type: 2}
+  HP:
+    m_InternalValue: 0
+  MaxHP:
+    m_InternalValue: 0
+  Shield:
+    m_InternalValue: 0
+  MaxShield:
+    m_InternalValue: 0
+  Armor:
+    m_InternalValue: 0
+  MaxArmor:
+    m_InternalValue: 0
+  SubSkillRemain:
+    m_InternalValue: 0
+  Coin:
+    m_InternalValue: 0
+  CurrentWeaponNum:
+    m_InternalValue: 0
+  Ammos: 
+  MaxAmmos: 
   weaponCamera: {fileID: 3744591979647134743, guid: bcf9cc8db6b33344b944c97973e61b1e, type: 3}
   minimapCamera: {fileID: 3579328034681261748, guid: aac7a323733123a40ba6bd5a0519bde5, type: 3}
   Hand: {fileID: 6228690009290334404}
@@ -254,6 +274,8 @@ MonoBehaviour:
   SkillPos: {fileID: 248616730331618309}
   GroundCheck: {fileID: 1148696939470767719}
   isStaggered: 0
+  m_EnergyOrb_Prefab: {fileID: 6540505259262294266, guid: 12c429830ba36524f8697ef0b9e56659, type: 3}
+  m_PoisonBomb_Prefab: {fileID: 551832105512609631, guid: ff6cc5518004423478e156c4a52b3042, type: 3}
 --- !u!114 &8943412598283778163
 MonoBehaviour:
   m_ObjectHideFlags: 0

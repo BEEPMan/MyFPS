@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using Unity.Netcode;
 using UnityEngine;
 
 public class StateMachine : MonoBehaviour
@@ -20,7 +21,7 @@ public class StateMachine : MonoBehaviour
 
     void Update()
     {
-        if(activeState != null)
+        if(activeState != null && NetworkManager.Singleton.IsServer)
         {
             activeState.Perform();
         }
@@ -30,14 +31,16 @@ public class StateMachine : MonoBehaviour
     {
         if(activeState != null)
         {
-            activeState.Exit();
+            if (NetworkManager.Singleton.IsServer)
+                activeState.Exit();
         }
         activeState = newState;
 
         if(activeState != null)
         {
             activeState.stateMachine = this;
-            activeState.Enter();
+            if(NetworkManager.Singleton.IsServer)
+                activeState.Enter();
         }
     }
 }

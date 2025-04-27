@@ -1,10 +1,14 @@
 using System.Collections;
 using System.Collections.Generic;
+using Unity.Netcode;
 using UnityEngine;
 
-public class PoisonBomb : MonoBehaviour
+public class PoisonBomb : NetworkBehaviour
 {
     private LayerMask _groundLayer;
+
+    [SerializeField]
+    private GameObject m_PoisonArea_Prefab;
 
     void Start()
     {
@@ -17,8 +21,9 @@ public class PoisonBomb : MonoBehaviour
         RaycastHit hitInfo;
         if (Physics.Raycast(ray, out hitInfo, 0.2f, _groundLayer))
         {
-            GameObject poisonArea = ObjectPool.Instance.Pop("PoisonArea", hitInfo.point, Quaternion.identity);
-            ObjectPool.Instance.Push(gameObject);
+            NetworkObject poisonArea = NetworkObjectPool.Instance.GetNetworkObject("PoisonArea", hitInfo.point, Quaternion.identity);
+            poisonArea.Spawn();
+            NetworkObject.Despawn(gameObject);
         }
     }
 }

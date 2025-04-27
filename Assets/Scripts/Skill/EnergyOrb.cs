@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using Unity.Netcode;
 using UnityEngine;
 
-public class EnergyOrb : MonoBehaviour
+public class EnergyOrb : NetworkBehaviour
 {
     [SerializeField] private float orbRange;
     private float explodeTimer;
@@ -17,6 +17,15 @@ public class EnergyOrb : MonoBehaviour
     void Update()
     {
         
+    }
+
+    void OnEnable()
+    {
+        isExploding = false;
+        transform.localScale = Vector3.one * 0.3f;
+        Renderer renderer = GetComponent<Renderer>();
+        Color color = renderer.material.color;
+        renderer.material.color = new Color(color.r, color.g, color.b, 1f);
     }
 
     private void OnTriggerEnter(Collider other)
@@ -48,6 +57,6 @@ public class EnergyOrb : MonoBehaviour
         }
         transform.localScale = Vector3.one * orbRange;
         renderer.material.color = new Color(color.r, color.g, color.b, 0f);
-        Destroy(gameObject);
+        NetworkObject.Despawn(true);
     }
 }

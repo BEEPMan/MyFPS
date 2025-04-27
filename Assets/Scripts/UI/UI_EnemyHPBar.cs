@@ -4,6 +4,7 @@ using UnityEngine.UI;
 using UnityEngine;
 using TMPro;
 using DG.Tweening;
+using Unity.Netcode;
 
 public class UI_EnemyHPBar : MonoBehaviour
 {
@@ -40,6 +41,7 @@ public class UI_EnemyHPBar : MonoBehaviour
         {
             if(child.name == "DamageText")
             {
+                child.SetParent(null);
                 ObjectPool.Instance.Push(child.gameObject);
             }
         }

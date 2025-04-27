@@ -1,5 +1,6 @@
 using Cysharp.Threading.Tasks;
 using EnumTypes;
+using System;
 using System.Threading.Tasks;
 using Unity.Netcode;
 using UnityEngine;
@@ -37,6 +38,62 @@ public class PlayerController : BaseController
     {
         ScrollManager = new ScrollManager();
         Weapons = new WeaponController[3];
+        int i = 0;
+        foreach (Transform weapon in HandWeapons)
+        {
+            Weapons[i] = weapon.GetComponent<WeaponController>();
+            //Weapons[i].Init(this);
+            //Weapons[i].GetComponent<WeaponPickUp>().isEquipped = true;
+            i++;
+        }
+        Move = new PlayerMove();
+        Look = new PlayerLook();
+        Move.Init(this);
+        Look.Init(this);
+
+        ElementalDamage = new int[Enum.GetValues(typeof(EnumTypes.ElementType)).Length];
+        BuffManager = new BuffManager(this);
+    }
+
+    public override void OnNetworkSpawn()
+    {
+        SubSkillRemain.OnValueChanged += OnSubSkillRemainChanged;
+        CurrentWeaponNum.OnValueChanged += OnWeaponNumChanged;
+        InitStat();
+        if (IsOwner)
+        {
+            if (UIManager.Instance.InGame != null)
+            {
+                UIManager.Instance.InGame.UpdateHPType(HPType);
+                UIManager.Instance.InGame.UpdateAmmoFillAmount(AmmoType.Normal, Ammos[(int)AmmoType.Normal], MaxAmmos[(int)AmmoType.Normal]);
+                UIManager.Instance.InGame.UpdateAmmoFillAmount(AmmoType.Large, Ammos[(int)AmmoType.Large], MaxAmmos[(int)AmmoType.Large]);
+                UIManager.Instance.InGame.UpdateAmmoFillAmount(AmmoType.Special, Ammos[(int)AmmoType.Special], MaxAmmos[(int)AmmoType.Special]);
+            }
+            SelectWeapon();
+
+            Camera.main.transform.SetParent(Hand);
+            Instantiate(weaponCamera, Hand);
+            Instantiate(minimapCamera, transform);
+            GameManager.Instance.OnPlayerSpawned(this);
+        }
+        else
+        {
+            foreach (WeaponController weapon in Weapons)
+            {
+                weapon.gameObject.layer = LayerMask.NameToLayer("Default");
+            }
+        }
+    }
+
+    protected override void InitStat()
+    {
+        base.InitStat();
+        
+        for(int i=0;i<Weapons.Length; i++)
+        {
+            Weapons[i].Init(this);
+            Weapons[i].GetComponent<WeaponPickUp>().isEquipped = true;
+        }
         Ammos = new int[4]
         {
             0,
@@ -51,72 +108,30 @@ public class PlayerController : BaseController
             Global.MaxLargeAmmo,
             Global.MaxSpecialAmmo,
         };
-        Move = new PlayerMove();
-        Look = new PlayerLook();
-        int i = 0;
-        foreach (Transform weapon in HandWeapons)
-        {
-            Weapons[i] = weapon.GetComponent<WeaponController>();
-            Weapons[i].Init(this);
-            Weapons[i].GetComponent<WeaponPickUp>().isEquipped = true;
-            i++;
-        }
+
         mainSkillTimer = Global.MainSkillCoolTime;
         subSkillTimer = Global.SubSkillCoolTime;
         dashTimer = Global.DashCoolTime;
         isStaggered = false;
-    }
 
-    protected override void Start()
-    {
-        base.Start();
-        Move.Init(this);
-        Look.Init(this);
-        if(UIManager.Instance.InGame != null)
-        {
-            UIManager.Instance.InGame.UpdateHPType(HPType);
-            UIManager.Instance.InGame.UpdateAmmoFillAmount(AmmoType.Normal, Ammos[(int)AmmoType.Normal], MaxAmmos[(int)AmmoType.Normal]);
-            UIManager.Instance.InGame.UpdateAmmoFillAmount(AmmoType.Large, Ammos[(int)AmmoType.Large], MaxAmmos[(int)AmmoType.Large]);
-            UIManager.Instance.InGame.UpdateAmmoFillAmount(AmmoType.Special, Ammos[(int)AmmoType.Special], MaxAmmos[(int)AmmoType.Special]);
-        }
-        SelectWeapon();
-    }
-
-    protected override void Update()
-    {
-        base.Update();
-        Move.OnUpdate();
-        Look.OnUpdate();
-
-        mainSkillTimer += Time.deltaTime;
-        subSkillTimer += Time.deltaTime;
-        dashTimer += Time.deltaTime;
-    }
-
-    public override void OnNetworkSpawn()
-    {
-        SubSkillRemain.OnValueChanged += OnSubSkillRemainChanged;
-        CurrentWeaponNum.OnValueChanged += OnWeaponNumChanged;
         if (NetworkManager.Singleton.IsServer)
         {
             SubSkillRemain.Value = Global.MaxSubSkillCount / 2;
             Coin.Value = 100;
             CurrentWeaponNum.Value = 0;
         }
-        if (IsOwner)
-        {
-            Camera.main.transform.SetParent(Hand);
-            Instantiate(weaponCamera, Hand);
-            Instantiate(minimapCamera, transform);
-            GameManager.Instance.OnPlayerSpawned(this);
-        }
-        else
-        {
-            foreach (WeaponController weapon in Weapons)
-            {
-                weapon.gameObject.layer = LayerMask.NameToLayer("Default");
-            }
-        }
+    }
+
+    void Update()
+    {
+        if(BuffManager != null && IsServer)
+            BuffManager.OnUpdate();
+        Move.OnUpdate();
+        Look.OnUpdate();
+
+        mainSkillTimer += Time.deltaTime;
+        subSkillTimer += Time.deltaTime;
+        dashTimer += Time.deltaTime;
     }
 
     public override void OnNetworkDespawn()
@@ -168,7 +183,8 @@ public class PlayerController : BaseController
     void MainSkillServerRPC()
     {
         if (mainSkillTimer < Global.MainSkillCoolTime) return;
-        GameObject eneryOrb = Instantiate(Resources.Load($"Prefabs/EnergyOrb") as GameObject, SkillPos.position, SkillPos.rotation);
+        NetworkObject eneryOrb = NetworkObjectPool.Instance.GetNetworkObject("EnergyOrb", SkillPos.position, SkillPos.rotation);
+        eneryOrb.Spawn();
         eneryOrb.GetComponent<Rigidbody>().linearVelocity = Hand.forward * 20f;
         mainSkillTimer = 0f;
         MainSkillClientRPC();
@@ -179,7 +195,8 @@ public class PlayerController : BaseController
     {
         if (!IsHost)
         {
-            GameObject eneryOrb = Instantiate(Resources.Load($"Prefabs/EnergyOrb") as GameObject, SkillPos.position, SkillPos.rotation);
+            NetworkObject eneryOrb = NetworkObjectPool.Instance.GetNetworkObject("EnergyOrb", SkillPos.position, SkillPos.rotation);
+            eneryOrb.Spawn();
             eneryOrb.GetComponent<Rigidbody>().linearVelocity = Hand.forward * 20f;
             mainSkillTimer = 0f;
         }
@@ -198,7 +215,8 @@ public class PlayerController : BaseController
     void SubSkillServerRPC()
     {
         if (subSkillTimer < Global.SubSkillCoolTime || SubSkillRemain.Value <= 0) return;
-        GameObject poisonBomb = ObjectPool.Instance.Pop("PoisonBomb", SkillPos.position, Quaternion.identity);
+        NetworkObject poisonBomb = NetworkObjectPool.Instance.GetNetworkObject("PoisonBomb", SkillPos.position, SkillPos.rotation);
+        poisonBomb.Spawn();
         poisonBomb.GetComponent<Rigidbody>().linearVelocity = Hand.forward * 10f;
         SubSkillRemain.Value--;
         subSkillTimer = 0f;
@@ -210,7 +228,8 @@ public class PlayerController : BaseController
     {
         if (!IsHost)
         {
-            GameObject poisonBomb = ObjectPool.Instance.Pop("PoisonBomb", SkillPos.position, Quaternion.identity);
+            NetworkObject poisonBomb = NetworkObjectPool.Instance.GetNetworkObject("PoisonBomb", SkillPos.position, SkillPos.rotation);
+            poisonBomb.Spawn();
             poisonBomb.GetComponent<Rigidbody>().linearVelocity = Hand.forward * 10f;
         }
         if (IsOwner)
@@ -442,81 +461,55 @@ public class PlayerController : BaseController
     public override void TakeDamage(int damage, EnumTypes.ElementType elementType = EnumTypes.ElementType.None, bool isTrueDamage = false)
     {
         int finalDamage = damage;
-        switch (HPType)
+        if (Shield.Value > 0)
         {
-            case EnumTypes.HPType.HPOnly:
-                if (!isTrueDamage)
-                {
-                    finalDamage = damage * (100 + TakenDamage + CalcDamageByHPType(HPType, elementType)) / 100;
-                }
-                HP.Value = Mathf.Clamp(HP.Value - finalDamage, 0, MaxHP.Value);
-                if (UIManager.Instance.InGame != null)
-                {
-                    UIManager.Instance.InGame.UpdateHPBar(HP.Value, MaxHP.Value);
-                    UIManager.Instance.InGame.ShowDamageOverlay(HP.Value);
-                }
-                break;
-            case EnumTypes.HPType.Shield:
-                if (Shield.Value > 0)
-                {
-                    if (!isTrueDamage)
-                    {
-                        finalDamage = damage * (100 + TakenDamage + CalcDamageByHPType(HPType, elementType)) / 100;
-                    }
-                    Shield.Value = Mathf.Clamp(Shield.Value - finalDamage, 0, MaxShield.Value);
-                    if (UIManager.Instance.InGame != null)
-                    {
-                        UIManager.Instance.InGame.UpdateSABar(Shield.Value, MaxShield.Value);
-                    }
-                }
-                else
-                {
-                    if (!isTrueDamage)
-                    {
-                        finalDamage = damage * (100 + TakenDamage + CalcDamageByHPType(EnumTypes.HPType.HPOnly, elementType)) / 100;
-                    }
-                    HP.Value = Mathf.Clamp(HP.Value - finalDamage, 0, MaxHP.Value);
-                    if (UIManager.Instance.InGame != null)
-                    {
-                        UIManager.Instance.InGame.UpdateHPBar(HP.Value, MaxHP.Value);
-                        UIManager.Instance.InGame.ShowDamageOverlay(HP.Value);
-                    }
-                }
-                break;
-            case EnumTypes.HPType.Armor:
-                if (Armor.Value > 0)
-                {
-                    if (!isTrueDamage)
-                    {
-                        finalDamage = damage * (100 + TakenDamage + CalcDamageByHPType(HPType, elementType)) / 100;
-                    }
-                    Armor.Value = Mathf.Clamp(Armor.Value - finalDamage, 0, MaxArmor.Value);
-                    if (UIManager.Instance.InGame != null)
-                    {
-                        UIManager.Instance.InGame.UpdateSABar(Armor.Value, MaxArmor.Value);
-                    }
-                }
-                else
-                {
-                    if (!isTrueDamage)
-                    {
-                        finalDamage = damage * (100 + TakenDamage + CalcDamageByHPType(EnumTypes.HPType.HPOnly, elementType)) / 100;
-                    }
-                    HP.Value = Mathf.Clamp(HP.Value - finalDamage, 0, MaxHP.Value);
-                    if (UIManager.Instance.InGame != null)
-                    {
-                        UIManager.Instance.InGame.UpdateHPBar(HP.Value, MaxHP.Value);
-                        UIManager.Instance.InGame.ShowDamageOverlay(HP.Value);
-                    }
-                }
-                break;
+            if (!isTrueDamage)
+            {
+                finalDamage = damage * (100 + TakenDamage + CalcDamageByHPType(HPType, elementType)) / 100;
+            }
+            Shield.Value = Mathf.Clamp(Shield.Value - finalDamage, 0, MaxShield.Value);
         }
-        if(NetworkManager.Singleton.IsServer)
+        else if (Armor.Value > 0)
+        {
+            if (!isTrueDamage)
+            {
+                finalDamage = damage * (100 + TakenDamage + CalcDamageByHPType(HPType, elementType)) / 100;
+            }
+            Armor.Value = Mathf.Clamp(Armor.Value - finalDamage, 0, MaxArmor.Value);
+        }
+        else
+        {
+            if (!isTrueDamage)
+            {
+                finalDamage = damage * (100 + TakenDamage + CalcDamageByHPType(EnumTypes.HPType.HPOnly, elementType)) / 100;
+            }
+            HP.Value = Mathf.Clamp(HP.Value - finalDamage, 0, MaxHP.Value);
+        }
+        UpdateHPBarUIRPC();
+        if (NetworkManager.Singleton.IsServer)
             TriggerElementalEffect(elementType, finalDamage);
         if (HP.Value <= 0)
         {
             Die();
         }
+    }
+
+    [Rpc(SendTo.Owner)]
+    private void UpdateHPBarUIRPC()
+    {
+        switch (HPType)
+        {
+            case HPType.HPOnly:
+                UIManager.Instance.InGame.ShowDamageOverlay(HP.Value);
+                break;
+            case HPType.Shield:
+                UIManager.Instance.InGame.UpdateSABar(Shield.Value, MaxShield.Value);
+                break;
+            case HPType.Armor:
+                UIManager.Instance.InGame.UpdateSABar(Armor.Value, MaxArmor.Value);
+                break;
+        }
+        UIManager.Instance.InGame.UpdateHPBar(HP.Value, MaxHP.Value);
     }
 
     public override void Die()

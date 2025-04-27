@@ -1,9 +1,6 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
-using Unity.VisualScripting;
 using UnityEngine;
-using static UnityEngine.GraphicsBuffer;
 
 public class BuffManager
 {
@@ -18,6 +15,11 @@ public class BuffManager
     {
         _controller = controller;
         activeBuffs = new Dictionary<string, List<BaseBuff>>();
+    }
+
+    public void Init()
+    {
+        activeBuffs.Clear();
     }
 
     public void OnUpdate()
@@ -121,5 +123,16 @@ public class BuffManager
     {
         if (activeBuffs.ContainsKey("Miasma") == false) return 0;
         return activeBuffs["Miasma"].Count;
+    }
+
+    public void SyncBuffs()
+    {
+        foreach (List<BaseBuff> buffs in activeBuffs.Values)
+        {
+            foreach (BaseBuff buff in buffs)
+            {
+                
+            }
+        }
     }
 }

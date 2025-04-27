@@ -20,11 +20,12 @@ public class AttackState : BaseState
 
     public override void Perform()
     {
-        Vector3 lookPos = stateMachine.Enemy.Target.transform.position;
-        lookPos.y = stateMachine.Enemy.transform.position.y;
-        stateMachine.Enemy.transform.LookAt(lookPos);
         if (stateMachine.Enemy.CanSeeTarget())
         {
+            Vector3 lookPos = stateMachine.Enemy.Target.transform.position;
+            lookPos.y = stateMachine.Enemy.transform.position.y;
+            stateMachine.Enemy.transform.LookAt(lookPos);
+
             loseTargetTimer = 0f;
 
             fireTimer += Time.deltaTime;

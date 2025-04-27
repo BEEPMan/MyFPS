@@ -9,6 +9,7 @@ public class SearchState : BaseState
     public override void Enter()
     {
         stateMachine.Enemy.Agent.SetDestination(stateMachine.Enemy.Target.transform.position);
+        stateMachine.Enemy.Target = null;
     }
 
     public override void Exit()

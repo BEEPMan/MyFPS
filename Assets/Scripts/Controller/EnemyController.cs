@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.IO.Pipes;
 using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.AI;
@@ -34,40 +35,25 @@ public class EnemyController : BaseController
     [SerializeField]
     private string currentState;
 
-    protected override void Start()
+    void Awake()
     {
         TargetLayer = Global.ObjectLayer.Player;
-        base.Start();
         StateMachine = GetComponent<StateMachine>();
         Agent = GetComponent<NavMeshAgent>();
-        StateMachine.Init();
         path = GameManager.Instance.path;
-        View.InitHPBer();
-        View.InitBuffIcons();
-        View.UpdateHPType(HPType);
-        BuffManager.buffEnabled += OnBuffEnabled;
-        BuffManager.buffDisabled += OnBuffDisabled;
+
+        ElementalDamage = new int[Enum.GetValues(typeof(EnumTypes.ElementType)).Length];
+        BuffManager = new BuffManager(this);
+
         //SetNearestTarget();
     }
 
-    public override void OnNetworkSpawn()
+    void OnEnable()
     {
-        if (NetworkManager.Singleton.IsServer)
-        {
-            HP.Value = Data.HP;
-            MaxHP.Value = Data.HP;
-            switch (HPType)
-            {
-                case EnumTypes.HPType.Shield:
-                    Shield.Value = Data.Shield;
-                    MaxShield.Value = Data.Shield;
-                    break;
-                case EnumTypes.HPType.Armor:
-                    Armor.Value = Data.Armor;
-                    MaxArmor.Value = Data.Armor;
-                    break;
-            }
-        }
+        StateMachine.Init();
+
+        InitStat();
+
         HP.OnValueChanged += (previous, current) =>
         {
             View.UpdateHPBar(HP.Value, MaxHP.Value);
@@ -80,41 +66,26 @@ public class EnemyController : BaseController
         {
             View.UpdateSABar(HP.Value, MaxHP.Value);
         };
-    }
-
-    protected override void Update()
-    {
-        //CanSeeTarget();
-        base.Update();
-        currentState = StateMachine.activeState.ToString();
-    }
-
-    public void Init()
-    {
-        HPType = Data.HPType;
-        HP.Value = Data.HP;
-        MaxHP.Value = Data.HP;
-        switch (HPType)
-        {
-            case EnumTypes.HPType.Shield:
-                Shield.Value = Data.Shield;
-                MaxShield.Value = Data.Shield;
-                break;
-            case EnumTypes.HPType.Armor:
-                Armor.Value = Data.Armor;
-                MaxArmor.Value = Data.Armor;
-                break;
-        }
-        Speed = Data.Speed;
-        ElementalDamage = new int[Enum.GetValues(typeof(EnumTypes.ElementType)).Length];
-        FinalDamage = 1f;
-        BuffManager = new BuffManager(this);
-        path = GameManager.Instance.path;
         View.InitHPBer();
         View.InitBuffIcons();
         View.UpdateHPType(HPType);
+        if (StateMachine != null)
+            StateMachine.ChangeState(new PatrolState());
         BuffManager.buffEnabled += OnBuffEnabled;
         BuffManager.buffDisabled += OnBuffDisabled;
+    }
+
+    protected override void InitStat()
+    {
+        base.InitStat();
+    }
+
+    void Update()
+    {
+        //CanSeeTarget();
+        if (BuffManager != null && IsServer)
+            BuffManager.OnUpdate();
+        currentState = StateMachine.activeState.ToString();
     }
 
     public void SetNearestTarget()
@@ -156,6 +127,11 @@ public class EnemyController : BaseController
                             Debug.DrawRay(ray.origin, ray.direction * sightDistance);
                             return true;
                         }
+                        else if(hitInfo.transform.gameObject.layer == LayerMask.NameToLayer(TargetLayer))
+                        {
+                            Target = hitInfo.transform.gameObject;
+                            return true;
+                        }
                     }
                 }
             }
@@ -171,23 +147,27 @@ public class EnemyController : BaseController
     protected override void AttackServerRPC()
     {
         GameObject bullet = ObjectPool.Instance.Pop("Bullet", gunBarrel.position, transform.rotation);
-        bullet.transform.Rotate(new Vector3(90f, 0f, 0f), Space.Self);
         bullet.GetComponent<Bullet>().TargetTag = TargetLayer;
         Vector3 fireDirection = (Target.transform.position - gunBarrel.transform.position).normalized;
-        bullet.GetComponent<Rigidbody>().linearVelocity = Quaternion.AngleAxis(UnityEngine.Random.Range(-3f, 3f), Vector3.up) * fireDirection * 40;
-        AttackClientRPC();
+        fireDirection = Quaternion.AngleAxis(UnityEngine.Random.Range(-3f, 3f), Vector3.up) * fireDirection * 40;
+        bullet.GetComponent<Bullet>().direction = fireDirection;
+        Vector3 lookDirection = new Vector3(0f, fireDirection.y, fireDirection.z).normalized;
+        bullet.transform.Rotate(lookDirection, Space.Self);
+        bullet.GetComponent<Rigidbody>().linearVelocity = fireDirection;
+        AttackClientRPC(fireDirection);
     }
 
     [Rpc(SendTo.ClientsAndHost)]
-    protected override void AttackClientRPC()
+    protected void AttackClientRPC(Vector3 direction)
     {
-        if (!IsHost)
+        if (!NetworkManager.Singleton.IsHost)
         {
             GameObject bullet = ObjectPool.Instance.Pop("Bullet", gunBarrel.position, transform.rotation);
-            bullet.transform.Rotate(new Vector3(90f, 0f, 0f), Space.Self);
             bullet.GetComponent<Bullet>().TargetTag = TargetLayer;
-            Vector3 fireDirection = (Target.transform.position - gunBarrel.transform.position).normalized;
-            bullet.GetComponent<Rigidbody>().linearVelocity = Quaternion.AngleAxis(UnityEngine.Random.Range(-3f, 3f), Vector3.up) * fireDirection * 40;
+            bullet.GetComponent<Bullet>().direction = direction;
+            Vector3 lookDirection = new Vector3(0f, direction.y, direction.z).normalized;
+            bullet.transform.Rotate(lookDirection, Space.Self);
+            bullet.GetComponent<Rigidbody>().linearVelocity = direction;
         }
     }
 
@@ -253,28 +233,28 @@ public class EnemyController : BaseController
     [Rpc(SendTo.ClientsAndHost)]
     public void PopDamageRPC(int damage)
     {
-        View.PopDamageText(damage);
+        if (!NetworkManager.Singleton.IsHost)
+            View.PopDamageText(damage);
     }
 
     public override void Die()
     {
         if (Utils.GetRandomResult(100))
         {
-            Item item = ItemManager.Instance.GetRandomPickupItem();
-            ItemManager.Instance.MakePickupItem(item, transform.position);
+            DropItemRPC();
         }
         BuffManager.ClearBuffs();
         BuffManager.buffEnabled -= OnBuffEnabled;
         BuffManager.buffDisabled -= OnBuffDisabled;
-        GameManager.Instance.OnEnemyDead();
-        ObjectPool.Instance.Push(gameObject);
-        DieRPC();
+        StateMachine.ChangeState(new NonState());
+        GameManager.Instance.OnEnemyDead(NetworkObject);
     }
 
     [Rpc(SendTo.ClientsAndHost)]
-    public void DieRPC()
+    public void DropItemRPC()
     {
-        ObjectPool.Instance.Push(gameObject);
+        Item item = ItemManager.Instance.GetRandomPickupItem();
+        ItemManager.Instance.MakePickupItem(item, transform.position);
     }
 
     public void OnBuffEnabled(BaseBuff buff)

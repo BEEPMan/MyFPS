@@ -4,6 +4,7 @@ using UnityEngine;
 using Cysharp.Threading.Tasks;
 using System;
 using Unity.Netcode;
+using System.IO.Pipes;
 
 public class Bullet : MonoBehaviour
 {
@@ -11,17 +12,21 @@ public class Bullet : MonoBehaviour
 
     private string _targetTag;
 
-    private void OnEnable()
+    public Vector3 direction;
+
+    void OnEnable()
     {
+        //transform.Rotate(direction, Space.Self);
+        //GetComponent<Rigidbody>().linearVelocity = direction;
         DestroyBullet().Forget();
     }
 
     private void OnCollisionEnter(Collision collision)
     {
-        Transform hitTransform = collision.transform;
-        if(hitTransform.CompareTag(_targetTag))
+        if (NetworkManager.Singleton.IsServer)
         {
-            if (NetworkManager.Singleton.IsServer)
+            Transform hitTransform = collision.transform;
+            if (hitTransform.CompareTag(_targetTag))
             {
                 if (_targetTag == Global.CharacterTag.Player)
                     hitTransform.GetComponent<PlayerController>().TakeDamage(1);
@@ -35,6 +40,7 @@ public class Bullet : MonoBehaviour
     private async UniTaskVoid DestroyBullet()
     {
         await UniTask.Delay(TimeSpan.FromSeconds(5.0f));
-        ObjectPool.Instance.Push(gameObject);
+        if (gameObject.activeSelf)
+            ObjectPool.Instance.Push(gameObject);
     }
 }

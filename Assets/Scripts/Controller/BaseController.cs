@@ -10,12 +10,12 @@ public abstract class BaseController : NetworkBehaviour
 
     #region Stat
     public EnumTypes.HPType HPType { get; set; }
-    public NetworkVariable<int> HP = new NetworkVariable<int>();
-    public NetworkVariable<int> MaxHP = new NetworkVariable<int>();
-    public NetworkVariable<int> Shield = new NetworkVariable<int>();
-    public NetworkVariable<int> MaxShield = new NetworkVariable<int>();
-    public NetworkVariable<int> Armor = new NetworkVariable<int>();
-    public NetworkVariable<int> MaxArmor = new NetworkVariable<int>();
+    public NetworkVariable<int> HP = new();
+    public NetworkVariable<int> MaxHP = new();
+    public NetworkVariable<int> Shield = new();
+    public NetworkVariable<int> MaxShield = new();
+    public NetworkVariable<int> Armor = new();
+    public NetworkVariable<int> MaxArmor = new();
 
     public float Speed { get; set; }
     public int SpeedFactor { get; set; }
@@ -29,18 +29,36 @@ public abstract class BaseController : NetworkBehaviour
 
     public BuffManager BuffManager;
 
-    protected virtual void Start()
+    protected virtual void InitStat()
     {
         HPType = Data.HPType;
+        if (NetworkManager.Singleton.IsServer)
+        {
+            HP.Value = Data.HP;
+            MaxHP.Value = Data.HP;
+            switch (HPType)
+            {
+                case EnumTypes.HPType.Shield:
+                    Shield.Value = Data.Shield;
+                    MaxShield.Value = Data.Shield;
+                    break;
+                case EnumTypes.HPType.Armor:
+                    Armor.Value = Data.Armor;
+                    MaxArmor.Value = Data.Armor;
+                    break;
+            }
+        }
         Speed = Data.Speed;
-        ElementalDamage = new int[Enum.GetValues(typeof(EnumTypes.ElementType)).Length];
+        SpeedFactor = 0;
+        WeaponDamage = 0;
+        SkillDamage = 0;
+        TakenDamage = 0;
+        for (int i=0;i<ElementalDamage.Length; i++)
+        {
+            ElementalDamage[i] = 0;
+        }
         FinalDamage = 1f;
-        BuffManager = new BuffManager(this);
-    }
-
-    protected virtual void Update()
-    {
-        BuffManager.OnUpdate();
+        BuffManager.Init();
     }
 
     public void Attack()
@@ -64,6 +82,18 @@ public abstract class BaseController : NetworkBehaviour
     }
 
     public abstract void TakeDamage(int damage, EnumTypes.ElementType elementType = EnumTypes.ElementType.None, bool isTrueDamage = false);
+
+    public abstract void Die();
+
+    public virtual void RestoreHealth(int healAmount)
+    {
+        HP.Value += healAmount;
+    }
+
+    public virtual void AddBuff(BaseBuff newBuff)
+    {
+        BuffManager.AddBuff(newBuff);
+    }
 
     public int CalcDamageByHPType(EnumTypes.HPType hPType, EnumTypes.ElementType elementType)
     {
@@ -104,17 +134,5 @@ public abstract class BaseController : NetworkBehaviour
                 BuffManager.AddBuff(new Decay(this, 5.0f, 50));
                 break;
         }
-    }
-
-    public abstract void Die();
-
-    public virtual void RestoreHealth(int healAmount)
-    {
-        HP.Value += healAmount;
-    }
-
-    public virtual void AddBuff(BaseBuff newBuff)
-    {
-        BuffManager.AddBuff(newBuff);
     }
 }

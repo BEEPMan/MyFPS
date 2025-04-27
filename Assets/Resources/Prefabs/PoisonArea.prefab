@@ -12,6 +12,7 @@ GameObject:
   - component: {fileID: 8439638973138114988}
   - component: {fileID: 6296185816390579091}
   - component: {fileID: 6578831709643110338}
+  - component: {fileID: 2818036801407214895}
   - component: {fileID: -5012564487774499625}
   m_Layer: 0
   m_Name: PoisonArea
@@ -60,6 +61,9 @@ MeshRenderer:
   m_ReflectionProbeUsage: 1
   m_RayTracingMode: 2
   m_RayTraceProcedural: 0
+  m_RayTracingAccelStructBuildFlagsOverride: 0
+  m_RayTracingAccelStructBuildFlags: 1
+  m_SmallMeshCulling: 1
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -106,6 +110,31 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 1.0000001, y: 100, z: 1.0000002}
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &2818036801407214895
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4041688921544147360}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  GlobalObjectIdHash: 1015210265
+  InScenePlacedSourceGlobalObjectIdHash: 0
+  DeferredDespawnTick: 0
+  Ownership: 1
+  AlwaysReplicateAsRoot: 0
+  SynchronizeTransform: 1
+  ActiveSceneSynchronization: 0
+  SceneMigrationSynchronization: 1
+  SpawnWithObservers: 1
+  DontDestroyWithOwner: 0
+  AutoObjectParentSync: 1
+  SyncOwnerTransformWhenParented: 1
+  AllowOwnerToParent: 0
 --- !u!114 &-5012564487774499625
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -118,3 +147,4 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6e367d33af5ce7344827946fcf98e861, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  ShowTopMostFoldoutHeaderGroup: 1

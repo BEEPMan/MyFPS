@@ -115,13 +115,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 70bf086a766b8f141bceaef9897d488e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  chipSpeed: 2
   frontHPBar: {fileID: 4174526375370277342}
   buffList: {fileID: 4302016903100923442}
   SABar: {fileID: 5847436589442522559}
   frontSABar: {fileID: 1681554531248515377}
   miasmaStack: {fileID: 3538466908058213758}
   miasmaText: {fileID: 5683712831946930413}
+  m_DamageText_Prefab: {fileID: 1806511474362353576, guid: 133624aaf30bad843a7e245ea5970f2b, type: 3}
 --- !u!1 &2437990126806175391
 GameObject:
   m_ObjectHideFlags: 0
@@ -404,6 +404,18 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   ShowTopMostFoldoutHeaderGroup: 1
   Data: {fileID: 11400000, guid: a03cf6dd71f9777418a6c3bed3163723, type: 2}
+  HP:
+    m_InternalValue: 0
+  MaxHP:
+    m_InternalValue: 0
+  Shield:
+    m_InternalValue: 0
+  MaxShield:
+    m_InternalValue: 0
+  Armor:
+    m_InternalValue: 0
+  MaxArmor:
+    m_InternalValue: 0
   View: {fileID: 6181562073672795482}
   path: {fileID: 0}
   sightDistance: 20
@@ -411,6 +423,7 @@ MonoBehaviour:
   eyeHeight: 0
   gunBarrel: {fileID: 1547540830102688227}
   fireRate: 1
+  m_Bullet_Prefab: {fileID: 3592717008822698906, guid: 22b2ddc2a5fe9e742b34b43dad672dec, type: 3}
   probability: 
   currentState: 
 --- !u!114 &3238481087025977221

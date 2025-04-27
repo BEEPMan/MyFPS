@@ -62,8 +62,9 @@ MonoBehaviour:
   PlayerPrefab: {fileID: 3985842547434477047, guid: 3c07e7c5c4a61d442bbb3dfae24d3f35, type: 3}
   SpawnPoint: {fileID: 0}
   path: {fileID: 0}
-  maxEnemyCount: 0
+  maxEnemyCount: 2
   spawnCoolDown: 3
+  m_Enemy_Prefab: {fileID: 5761757205460738378, guid: a6a3be2a195b7854188345e7d95652ff, type: 3}
 --- !u!114 &1380138246085231871
 MonoBehaviour:
   m_ObjectHideFlags: 0
